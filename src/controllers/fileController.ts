@@ -31,9 +31,11 @@ export const uploadFile = async (req: Request, res: Response): Promise<void> => 
 };
 
 export const downloadFile = async (req: Request, res: Response) => {
-    console.log("Downloading file:", req.params.key);
+    console.log("Downloading file:", req.params[0]);
     try {
-        const key = req.params[0];
+        let key = req.params[0];
+        key=key.trim();
+
         if (!key) {
             res.status(400).json({ message: "No file key provided" });
             return 
@@ -44,27 +46,20 @@ export const downloadFile = async (req: Request, res: Response) => {
             res.status(500).json({ message: "S3 bucket name is not configured in environment variables" });
             return 
         }
-
-        const params = {
-            Bucket: bucketName,
-            Key: key,
-        };
-
-        // Attempt to get the file from S3
-        const fileStream = s3.getObject(params).createReadStream();
-
-        // Handle any errors while reading the file stream
-        fileStream.on('error', (error) => {
-            console.error("Error reading S3 file stream:", error);
-            return res.status(404).json({ message: "File not found or inaccessible", error: error.message });
+        const signedUrl = s3.getSignedUrl("getObject", {
+            Bucket: process.env.AWS_S3_BUCKET as string, // Bucket name
+            Key: key, // File key
+            Expires: 60 * 15, // Link valid for 15 minutes
         });
 
-        // Set headers for the response to indicate a file download
-        res.setHeader("Content-Disposition", `attachment; filename="${key}"`);
-        res.setHeader("Content-Type", "application/octet-stream");
+        // Return the signed URL to the client
+       res.status(200).json({
+            message: "Signed URL generated successfully",
+            url: signedUrl,
+        });
+        return ;
 
-        // Pipe the S3 file stream directly to the response
-        fileStream.pipe(res);
+
     } catch (error: any) {
         console.error("Error in downloadFile handler:", error);
         res.status(500).json({ message: "Error downloading file", error: error.message });
