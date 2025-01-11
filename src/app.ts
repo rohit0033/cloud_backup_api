@@ -1,5 +1,6 @@
 import express from 'express';
 import authRoutes from './routes/authRoute';
+import fileRoutes from './routes/fileroutes';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -9,6 +10,7 @@ const app = express();
 app.use(express.json());
 
 app.use('/api/auth', authRoutes);
+app.use('/api/file', fileRoutes);
 
 
 app.get('/', (req, res) => {
