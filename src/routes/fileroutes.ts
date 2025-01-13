@@ -1,7 +1,7 @@
 import multer from 'multer';
 import express from 'express';
 import { downloadFile, uploadFile } from '../controllers/fileController';
-import { createFolderFun, getUserFolderFiles, getUserFolders } from '../controllers/folderController';
+import { createFolderFun, deleteFolderFun, DelfileFunction, getUserFolderFiles, getUserFolders } from '../controllers/folderController';
 
 const router = express.Router();
 
@@ -22,6 +22,9 @@ router.post('/folder', createFolderFun);
 router.get('/folder/:userid', getUserFolders);
 
 router.get('/folder/:userId/:folderId', getUserFolderFiles);
+
+router.delete('/folder/:folderId/:userId', deleteFolderFun);
+router.delete('/folder/:userId/:folderId/:fileId', DelfileFunction);
 
 export default router;
 

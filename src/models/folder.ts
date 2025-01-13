@@ -1,5 +1,7 @@
 import { pool } from "./user"
 
+// TODO:use the ORM instead of raw sql queries 
+
 export const createfolder = async(foldername: string,  userid: number) =>{
     const query= 
     `
@@ -22,6 +24,16 @@ export const getUserFolder = async(userid: number) =>{
     const result = await pool.query(query, [userid]);
     return result.rows;
 }
+export const deleteFolder = async(folderId:number) =>{
+    const query = 
+    `
+    DELETE FROM folders
+    WHERE id = $1
+    RETURNING *
+    `
+    const result = await pool.query(query, [folderId]);
+    return result.rows[0];
+}
 
 
 export const addFilesToFolder = async(fileName: string, fileSize: number ,folderId: number, folderPath: string ,  ) => {
@@ -43,4 +55,14 @@ export const getFilesInFolder = async(folderId: number,userId:Number) => {
     `
     const result = await pool.query(query, [folderId]);
     return result.rows;
+}
+
+export const delteFilesInFolder = async(folderId: number) => {
+    const query =
+    `
+    DELETE FROM files
+    WHERE id = $1
+    RETURNING *
+    `
+    const result = await pool.query(query, [folderId]);
 }
