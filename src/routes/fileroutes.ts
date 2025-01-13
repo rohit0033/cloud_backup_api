@@ -1,6 +1,7 @@
 import multer from 'multer';
 import express from 'express';
 import { downloadFile, uploadFile } from '../controllers/fileController';
+import { createFolderFun, getUserFolderFiles, getUserFolders } from '../controllers/folderController';
 
 const router = express.Router();
 
@@ -12,9 +13,15 @@ const upload = multer({
         fileSize: 1024 * 1024 * 200
     }
 })
+// ToDo: Add middelware and store the token in cookies 
 
 router.post('/upload', upload.single('file'), uploadFile);
 router.get('/download/*', downloadFile);
+
+router.post('/folder', createFolderFun);
+router.get('/folder/:userid', getUserFolders);
+
+router.get('/folder/:userId/:folderId', getUserFolderFiles);
 
 export default router;
 

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import s3, { getSignedUrl } from '../utils/awsS3';
+import { addFilesToFolder } from '../models/folder';
 
 
 
@@ -12,18 +13,37 @@ export const uploadFile = async (req: Request, res: Response): Promise<void> => 
       res.status(400).json({ message: "No file uploaded" });
       return;
     }
+    const fileName = `uploads/${Date.now()}_${file.originalname}`
+    
 
     // Example S3 upload logic
     const params = {
       Bucket: process.env.AWS_S3_BUCKET as string,
-      Key: `uploads/${Date.now()}_${file.originalname}`,
+      Key: fileName,
       Body: file.buffer,
       ContentType: file.mimetype,
     };
-
+    const fileSize = file.size / 1024 / 1024; // in MB
+    if (fileSize > 200) { // Limit file size to 200MB
+      res.status(400).json({ message: "File size exceeds the limit of 200MB" });
+      return;
+    }
+    
     const uploadResult = await s3.upload(params).promise();
+    const folderId = req.body.folderId;
+    if (!folderId) {
+      res.status(400).json({ message: "No folder ID provided" });
+      return;
+    }
+    const folderPath = uploadResult.Location;
 
-    res.status(200).json({ message: "File uploaded successfully", data: uploadResult });
+    const fileRecord = await addFilesToFolder(fileName, fileSize, folderId, folderPath);
+
+
+
+
+
+    res.status(200).json({ message: "File uploaded successfully", fileRecord, uploadDetails: uploadResult });
   } catch (error:any) {
     console.error(error);
     res.status(500).json({ message: "Error uploading file", error: error.message });

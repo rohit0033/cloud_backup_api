@@ -5,7 +5,7 @@ dotenv.config();
 
 console.log(process.env.DB_USER);
 
-const pool= new Pool({
+export const pool= new Pool({
     user: process.env.DB_USER,
     host: process.env.DB_HOST,
     database: process.env.DB_NAME,
@@ -35,3 +35,4 @@ export const getUserByEmail = async(email: string) => {
     const result = await pool.query(query, [email])
     return result.rows[0];
 }
+
